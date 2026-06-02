@@ -12,7 +12,7 @@ const HAVERSINE_SQL = `
 const seedPlaces = [
   { id:1, name:"二沙岛宠物公园", type:"公园", distance:"2.1km", lat:23.1140, lng:113.2950, rating:4.8, reviews:126, desc:"广州最大的宠物友好公园", phone:"020-87301234" },
   { id:2, name:"星巴克宠物友好店(天河城)", type:"咖啡馆", distance:"1.5km", lat:23.1320, lng:113.3210, rating:4.5, reviews:89, desc:"提供宠物饮水点和小零食", phone:"020-85591234" },
-  { id:3, name:"瑞鹏宠物医院(天河分院)", type:"医院", distance:"0.8km", lat:23.1350, lng:113.3280, rating:4.7, reviews:203, desc:"24小时急诊", phone:"020-87561234" },
+  { id:3, name:"珠江公园宠物区", type:"公园", distance:"0.8km", lat:23.1250, lng:113.3350, rating:4.7, reviews:203, desc:"市中心宠物友好公园，遛狗好去处" },
   { id:4, name:"爪印友好餐厅·宠物主题", type:"餐厅", distance:"3.2km", lat:23.1200, lng:113.3100, rating:4.3, reviews:56, desc:"可以和宠物一起用餐", phone:"020-88991234" },
   { id:5, name:"白云山宠物徒步路线", type:"户外", distance:"5.8km", lat:23.1850, lng:113.2970, rating:4.9, reviews:341, desc:"最受欢迎的遛狗路线" },
   { id:6, name:"珠江新城宠物美容馆", type:"美容", distance:"1.9km", lat:23.1190, lng:113.3250, rating:4.6, reviews:178, desc:"金牌美容师", phone:"020-38261234" },
@@ -27,8 +27,8 @@ const seedNotes = {
     { id:201, user:"柯基小短腿", avatar:"https://images.unsplash.com/photo-1615464670798-6e92fafa2a89?w=80", content:"店员超nice！主动给狗狗倒了水，还有免费的小零食。柯基表示五星好评⭐", images:["https://images.unsplash.com/photo-1615464670798-6e92fafa2a89?w=400"], time:"1天前", likes:34, placeId:2 },
   ],
   3: [
-    { id:301, user:"萨摩耶妈咪", avatar:"https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=80", content:"凌晨两点紧急带狗狗来看病，医生非常专业，很快就处理好了。24小时急诊太重要了🙏", images:["https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=400"], time:"3天前", likes:67, placeId:3 },
-    { id:302, user:"金毛阿福", avatar:"https://images.unsplash.com/photo-1755151234567-abc?w=80", content:"定期来这里做体检，设备很先进，价格也合理", images:["https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400"], time:"1周前", likes:12, placeId:3 },
+    { id:301, user:"萨摩耶妈咪", avatar:"https://images.unsplash.com/photo-1559190394-df5a28aab5c7?w=80", content:"凌晨两点紧急带狗狗来看病，医生非常专业，很快就处理好了。24小时急诊太重要了🙏", images:["https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=400"], time:"3天前", likes:67, placeId:3 },
+    { id:302, user:"金毛阿福", avatar:"https://images.unsplash.com/photo-1507003211169-0a1dd7228fd2?w=80", content:"定期来这里做体检，设备很先进，价格也合理", images:["https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400"], time:"1周前", likes:12, placeId:3 },
   ],
   4: [
     { id:401, user:"布偶猫主人", avatar:"https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=80", content:"第一次带猫咪外出用餐！这家店有专门的宠物餐单，也太可爱了吧😍", images:["https://images.unsplash.com/photo-1604544203292-0daa7f847478?w=400"], time:"4天前", likes:45, placeId:4 },

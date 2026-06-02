@@ -35,4 +35,10 @@ router.get('/:id', (req, res) => {
   res.json({ code: 0, data: fmt(post) });
 });
 
+// DELETE post
+router.delete('/:id', (req, res) => {
+  db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
+  res.json({ code: 0 });
+});
+
 module.exports = router;

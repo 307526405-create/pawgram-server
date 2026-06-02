@@ -1,0 +1,16 @@
+const express = require('express');
+const db = require('../database/init');
+const router = express.Router();
+
+router.get('/', (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.pageSize) || 10;
+  const offset = (page - 1) * limit;
+  
+  const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
+  const total = db.prepare('SELECT COUNT(*) as c FROM posts').get().c;
+  
+  res.json({ code: 0, data: { list: posts.map(p => ({...p, images: JSON.parse(p.images), tags: JSON.parse(p.tags), user: { name: p.user_name, avatar: p.user_avatar }})), pagination: { page, pageSize: limit, total, hasMore: offset + limit < total } } });
+});
+
+module.exports = router;

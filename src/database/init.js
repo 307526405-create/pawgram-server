@@ -34,10 +34,12 @@ const randGZ = () => ({
 // Seed
 const count = db.prepare('SELECT COUNT(*) as c FROM users').get();
 if (count.c === 0) {
-  const u1 = randGZ(); const u2 = randGZ(); const u3 = randGZ();
+  const u1 = randGZ(); const u2 = randGZ(); const u3 = randGZ(); const u4 = randGZ(); const u5 = randGZ();
   db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (1,'lily','王丽丽','','https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150','爱宠物爱生活',?,?,45,1204,1790,datetime('now'))").run(u1.lat, u1.lon);
   db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (2,'bob','陈小波','','https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150','猫咪控',?,?,89,120,450,datetime('now'))").run(u2.lat, u2.lon);
   db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (3,'flower','张小花','','https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150','八哥犬妈妈',?,?,567,342,890,datetime('now'))").run(u3.lat, u3.lon);
+	  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (4,'alex','刘小帅','','https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150','萨摩耶奶爸',?,?,120,89,320,datetime('now'))").run(u4.lat, u4.lon);
+	  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (5,'emma','赵小美','','https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150','柴犬爱好者',?,?,210,156,670,datetime('now'))").run(u5.lat, u5.lon);
   
   db.prepare("INSERT INTO posts VALUES (1,1,'今天在公园玩得太开心了！贝利非常乖，还交到了一个柯基新朋友。🐾☀️','[\\\"https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=800\\\",\\\"https://images.unsplash.com/photo-1668757183096-bc55a8992558?w=800\\\"]','[\\\"金毛\\\",\\\"公园日常\\\"]','金毛','阳光公园',342,12,1,datetime('now','-2 hours'))").run();
   db.prepare("INSERT INTO posts VALUES (2,2,'欢迎家里最小的新成员！还在想名字...大家有什么建议吗？🐱❤️','[\\\"https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=800\\\"]','[\\\"猫咪\\\",\\\"幼猫\\\"]','猫咪','温馨的家',891,45,0,datetime('now','-5 hours'))").run();
@@ -71,3 +73,5 @@ if (count.c === 0) {
   }
   if (zeroUsers.length > 0) console.log(`Updated ${zeroUsers.length} users with Guangzhou coordinates`);
 }
+
+module.exports = db;

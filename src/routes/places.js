@@ -1,5 +1,13 @@
 const express = require('express');
+const db = require('../database/init');
 const router = express.Router();
+
+const HAVERSINE_SQL = `
+  (6371 * acos(
+    cos(radians(?)) * cos(radians(?)) * cos(radians(?) - radians(?))
+    + sin(radians(?)) * sin(radians(?))
+  ))
+`;
 
 const seedPlaces = [
   { id:1, name:"二沙岛宠物公园", type:"公园", distance:"2.1km", lat:23.1140, lng:113.2950, rating:4.8, reviews:126, desc:"广州最大的宠物友好公园", phone:"020-87301234" },
@@ -37,9 +45,21 @@ const seedNotes = {
 let submissions = [];
 let nextId = 7;
 
-// GET all places (approved only)
+// GET all places (approved only), optionally with distance_km
 router.get('/', (req, res) => {
-  res.json({ code: 0, data: { list: seedPlaces } });
+  const lat = parseFloat(req.query.lat);
+  const lon = parseFloat(req.query.lon);
+  const hasCoords = !isNaN(lat) && !isNaN(lon);
+
+  let list = seedPlaces;
+  if (hasCoords) {
+    list = seedPlaces.map(p => {
+      const stmt = db.prepare(`SELECT ${HAVERSINE_SQL} as d`);
+      const row = stmt.get(lat, p.lat, p.lng, lon, lat, p.lat);
+      return { ...p, distance_km: Math.round(row.d * 100) / 100 };
+    });
+  }
+  res.json({ code: 0, data: { list } });
 });
 
 // GET discover feed (aggregated notes from all places)

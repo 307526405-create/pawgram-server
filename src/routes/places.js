@@ -20,25 +20,25 @@ const seedPlaces = [
 
 const seedNotes = {
   1: [
-    { id:101, user:"大黄铲屎官", avatar:"https://images.unsplash.com/photo-1761933808230-9a2e78956daa?w=80", content:"周末带金毛来玩了一下午，草坪超大！狗狗玩得超开心，还有很多小伙伴🐕", images:["https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400"], time:"2天前", likes:23, placeId:1 },
-    { id:102, user:"橘猫日记", avatar:"https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=80", content:"这里管理很规范，每个区域都有围栏，大狗小狗分开，很放心", images:["https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400"], time:"5天前", likes:15, placeId:1 },
+    { id:101, postId:1, user:"大黄铲屎官", avatar:"https://images.unsplash.com/photo-1761933808230-9a2e78956daa?w=80", content:"周末带金毛来玩了一下午，草坪超大！狗狗玩得超开心，还有很多小伙伴🐕", images:["https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400"], time:"2天前", likes:23, placeId:1 },
+    { id:102, postId:1, user:"橘猫日记", avatar:"https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=80", content:"这里管理很规范，每个区域都有围栏，大狗小狗分开，很放心", images:["https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400"], time:"5天前", likes:15, placeId:1 },
   ],
   2: [
-    { id:201, user:"柯基小短腿", avatar:"https://images.unsplash.com/photo-1615464670798-6e92fafa2a89?w=80", content:"店员超nice！主动给狗狗倒了水，还有免费的小零食。柯基表示五星好评⭐", images:["https://images.unsplash.com/photo-1668757183096-bc55a8992558?w=400"], time:"1天前", likes:34, placeId:2 },
+    { id:201, postId:3, user:"柯基小短腿", avatar:"https://images.unsplash.com/photo-1615464670798-6e92fafa2a89?w=80", content:"店员超nice！主动给狗狗倒了水，还有免费的小零食。柯基表示五星好评⭐", images:["https://images.unsplash.com/photo-1668757183096-bc55a8992558?w=400"], time:"1天前", likes:34, placeId:2 },
   ],
   3: [
-    { id:301, user:"萨摩耶妈咪", avatar:"https://images.unsplash.com/photo-1608744882201-52a7f7f3dd60?w=80", content:"凌晨两点紧急带狗狗来看病，医生非常专业，很快就处理好了。24小时急诊太重要了🙏", images:["https://images.unsplash.com/photo-1489924034176-2e678c29d4c6?w=400"], time:"3天前", likes:67, placeId:3 },
-    { id:302, user:"金毛阿福", avatar:"https://images.unsplash.com/photo-1536548665027-b96d34a005ae?w=80", content:"定期来这里做体检，设备很先进，价格也合理", images:["https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400"], time:"1周前", likes:12, placeId:3 },
+    { id:301, postId:4, user:"萨摩耶妈咪", avatar:"https://images.unsplash.com/photo-1608744882201-52a7f7f3dd60?w=80", content:"凌晨两点紧急带狗狗来看病，医生非常专业，很快就处理好了。24小时急诊太重要了🙏", images:["https://images.unsplash.com/photo-1489924034176-2e678c29d4c6?w=400"], time:"3天前", likes:67, placeId:3 },
+    { id:302, postId:1, user:"金毛阿福", avatar:"https://images.unsplash.com/photo-1536548665027-b96d34a005ae?w=80", content:"定期来这里做体检，设备很先进，价格也合理", images:["https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400"], time:"1周前", likes:12, placeId:3 },
   ],
   4: [
-    { id:401, user:"布偶猫主人", avatar:"https://images.unsplash.com/photo-1586289883499-f11d28aaf52f?w=80", content:"第一次带猫咪外出用餐！这家店有专门的宠物餐单，也太可爱了吧😍", images:["https://images.unsplash.com/photo-1604544203292-0daa7f847478?w=400"], time:"4天前", likes:45, placeId:4 },
+    { id:401, postId:4, user:"布偶猫主人", avatar:"https://images.unsplash.com/photo-1586289883499-f11d28aaf52f?w=80", content:"第一次带猫咪外出用餐！这家店有专门的宠物餐单，也太可爱了吧😍", images:["https://images.unsplash.com/photo-1604544203292-0daa7f847478?w=400"], time:"4天前", likes:45, placeId:4 },
   ],
   5: [
-    { id:501, user:"汪星人阿呆", avatar:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=80", content:"全程5公里，树荫很多不晒。山顶还有宠物饮水点，设计很贴心🌲", images:["https://images.unsplash.com/photo-1552053831-71594a27632d?w=400"], time:"6天前", likes:89, placeId:5 },
-    { id:502, user:"拉布拉多日记", avatar:"https://images.unsplash.com/photo-1516371535707-512a1e83bb9a?w=80", content:"每周必来的路线！建议早上来，人少狗狗可以放开跑", images:["https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=400"], time:"1周前", likes:31, placeId:5 },
+    { id:501, postId:5, user:"汪星人阿呆", avatar:"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=80", content:"全程5公里，树荫很多不晒。山顶还有宠物饮水点，设计很贴心🌲", images:["https://images.unsplash.com/photo-1552053831-71594a27632d?w=400"], time:"6天前", likes:89, placeId:5 },
+    { id:502, postId:5, user:"拉布拉多日记", avatar:"https://images.unsplash.com/photo-1516371535707-512a1e83bb9a?w=80", content:"每周必来的路线！建议早上来，人少狗狗可以放开跑", images:["https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=400"], time:"1周前", likes:31, placeId:5 },
   ],
   6: [
-    { id:601, user:"比熊小丸子", avatar:"https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80", content:"美容师手法很温柔，比熊剪完毛像换了只狗哈哈！还送了小领结🎀", images:["https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400"], time:"3天前", likes:56, placeId:6 },
+    { id:601, postId:1, user:"比熊小丸子", avatar:"https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=80", content:"美容师手法很温柔，比熊剪完毛像换了只狗哈哈！还送了小领结🎀", images:["https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400"], time:"3天前", likes:56, placeId:6 },
   ],
 };
 

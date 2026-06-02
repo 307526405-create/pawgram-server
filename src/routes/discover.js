@@ -32,10 +32,11 @@ router.get('/nearby', (req, res) => {
   `).all(lat, lon, lat, limit);
 
   // Format posts
+  const clean = (s) => (s || '[]').replace(/\\"/g, '"');
   const postList = posts.map(p => ({
     ...p,
-    images: JSON.parse(p.images || '[]'),
-    tags: JSON.parse(p.tags || '[]'),
+    images: JSON.parse(clean(p.images)),
+    tags: JSON.parse(clean(p.tags)),
     user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar },
     distance_km: Math.round(p.distance_km * 100) / 100,
   }));

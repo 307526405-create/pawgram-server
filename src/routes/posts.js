@@ -2,7 +2,12 @@ const express = require('express');
 const db = require('../database/init');
 const router = express.Router();
 
-const fmt = (p) => ({...p, images: JSON.parse(p.images), media: JSON.parse(p.images), tags: JSON.parse(p.tags), user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar }});
+const fmt = (p) => {
+  const rawImg = p.images || '[]';
+  const rawTag = p.tags || '[]';
+  const clean = (s) => s.replace(/\\"/g, '"');
+  return {...p, images: JSON.parse(clean(rawImg)), media: JSON.parse(clean(rawImg)), tags: JSON.parse(clean(rawTag)), user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar }};
+};
 
 router.get('/', (req, res) => {
   const page = parseInt(req.query.page) || 1;

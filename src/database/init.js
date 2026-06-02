@@ -17,9 +17,9 @@ db.exec(`
 // Seed
 const count = db.prepare('SELECT COUNT(*) as c FROM users').get();
 if (count.c === 0) {
-  db.prepare("INSERT INTO users VALUES (1,'lily','王丽丽','','','爱宠物爱生活',45,1204,1790,datetime('now'))").run();
-  db.prepare("INSERT INTO users VALUES (2,'bob','陈小波','','','猫咪控',89,120,450,datetime('now'))").run();
-  db.prepare("INSERT INTO users VALUES (3,'flower','张小花','','','八哥犬妈妈',567,342,890,datetime('now'))").run();
+  db.prepare("INSERT INTO users VALUES (1,'lily','王丽丽','','https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150','爱宠物爱生活',45,1204,1790,datetime('now'))").run();
+  db.prepare("INSERT INTO users VALUES (2,'bob','陈小波','','https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150','猫咪控',89,120,450,datetime('now'))").run();
+  db.prepare("INSERT INTO users VALUES (3,'flower','张小花','','https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150','八哥犬妈妈',567,342,890,datetime('now'))").run();
   
   db.prepare("INSERT INTO posts VALUES (1,1,'今天在公园玩得太开心了！贝利非常乖，还交到了一个柯基新朋友。🐾☀️','[\"https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=800\",\"https://images.unsplash.com/photo-1668757183096-bc55a8992558?w=800\"]','[\"金毛\",\"公园日常\"]','金毛','阳光公园',342,12,1,datetime('now','-2 hours'))").run();
   db.prepare("INSERT INTO posts VALUES (2,2,'欢迎家里最小的新成员！还在想名字...大家有什么建议吗？🐱❤️','[\"https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=800\"]','[\"猫咪\",\"幼猫\"]','猫咪','温馨的家',891,45,0,datetime('now','-5 hours'))").run();

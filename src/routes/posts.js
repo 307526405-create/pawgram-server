@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../database/init');
 const router = express.Router();
 
-const fmt = (p) => ({...p, images: JSON.parse(p.images), tags: JSON.parse(p.tags), user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar }});
+const fmt = (p) => ({...p, images: JSON.parse(p.images), media: JSON.parse(p.images), tags: JSON.parse(p.tags), user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar }});
 
 router.get('/', (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -39,6 +39,65 @@ router.get('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
   res.json({ code: 0 });
+});
+
+// GET comments for a post (nested structure)
+router.get('/:id/comments', (req, res) => {
+  const postId = req.params.id;
+  const rows = db.prepare(`
+    SELECT c.*, u.nickname as user_name, u.avatar as user_avatar
+    FROM comments c JOIN users u ON c.user_id = u.id
+    WHERE c.post_id = ?
+    ORDER BY c.created_at ASC
+  `).all(postId);
+
+  // Build nested tree (max 2 levels)
+  const map = {};
+  const roots = [];
+
+  rows.forEach((r) => {
+    const node = {
+      id: r.id,
+      user: { id: r.user_id, name: r.user_name, avatar: r.user_avatar },
+      content: r.content,
+      parent_id: r.parent_id,
+      created_at: r.created_at,
+      replies: [],
+    };
+    map[r.id] = node;
+  });
+
+  rows.forEach((r) => {
+    const node = map[r.id];
+    if (r.parent_id && map[r.parent_id]) {
+      // Only nest up to 2 levels: if parent is already a reply, treat as top-level
+      const parent = map[r.parent_id];
+      if (parent.parent_id) {
+        // Parent is itself a reply -> treat this as top-level to limit depth
+        roots.push(node);
+      } else {
+        parent.replies.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+
+  res.json({ code: 0, data: roots });
+});
+
+// POST comment (optionally as a reply)
+router.post('/:id/comments', (req, res) => {
+  const postId = req.params.id;
+  const { content, parent_id } = req.body;
+  if (!content || !content.trim()) return res.status(400).json({ code: -1, msg: '评论内容不能为空' });
+
+  const userId = 1; // current user
+  const info = db.prepare(
+    'INSERT INTO comments (post_id, user_id, content, parent_id) VALUES (?, ?, ?, ?)'
+  ).run(postId, userId, content.trim(), parent_id || null);
+
+  res.json({ code: 0, data: { id: info.lastInsertRowid } });
 });
 
 module.exports = router;

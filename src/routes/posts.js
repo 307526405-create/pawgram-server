@@ -49,6 +49,7 @@ router.delete('/:id', (req, res) => {
 // GET comments for a post (nested structure)
 router.get('/:id/comments', (req, res) => {
   const postId = req.params.id;
+  const lang = req.query.lang || 'zh';
   const rows = db.prepare(`
     SELECT c.*, u.nickname as user_name, u.avatar as user_avatar
     FROM comments c JOIN users u ON c.user_id = u.id
@@ -60,11 +61,13 @@ router.get('/:id/comments', (req, res) => {
   const map = {};
   const roots = [];
 
+  const getContent = (r) => (lang === 'en' && r.content_en) ? r.content_en : r.content;
+
   rows.forEach((r) => {
     const node = {
       id: r.id,
       user: { id: r.user_id, name: r.user_name, avatar: r.user_avatar },
-      content: r.content,
+      content: getContent(r),
       parent_id: r.parent_id,
       created_at: r.created_at,
       replies: [],

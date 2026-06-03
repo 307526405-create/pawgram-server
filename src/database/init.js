@@ -10,7 +10,7 @@ const db = new Database(path.join(dataDir, 'pawgram.db'));
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, nickname TEXT, phone TEXT, avatar TEXT, bio TEXT DEFAULT '', lat REAL DEFAULT 0, lon REAL DEFAULT 0, follow_count INTEGER DEFAULT 0, follower_count INTEGER DEFAULT 0, like_count INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, content TEXT, images TEXT DEFAULT '[]', tags TEXT DEFAULT '[]', breed TEXT DEFAULT '', location TEXT DEFAULT '', like_count INTEGER DEFAULT 0, comment_count INTEGER DEFAULT 0, is_liked INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
-  CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, user_id INTEGER, content TEXT, reply_to INTEGER, parent_id INTEGER REFERENCES comments(id), created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+  CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, user_id INTEGER, content TEXT, content_en TEXT, reply_to INTEGER, parent_id INTEGER REFERENCES comments(id), created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS likes (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, post_id INTEGER, UNIQUE(user_id, post_id));
 `);
 
@@ -54,14 +54,14 @@ if (count.c === 0) {
   const commentCount = db.prepare('SELECT COUNT(*) as c FROM comments').get();
   if (commentCount.c === 0) {
     // Top-level comments
-    db.prepare("INSERT INTO comments (id, post_id, user_id, content, parent_id, created_at) VALUES (1, 1, 2, '金毛也太可爱了吧！', NULL, datetime('now','-30 minutes'))").run();
-    db.prepare("INSERT INTO comments (id, post_id, user_id, content, parent_id, created_at) VALUES (2, 1, 3, '这个公园在哪里呀？环境看起来真不错', NULL, datetime('now','-20 minutes'))").run();
+    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (1, 1, 2, '金毛也太可爱了吧！', 'Your Golden Retriever is so adorable!', NULL, datetime('now','-30 minutes'))").run();
+    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (2, 1, 3, '这个公园在哪里呀？环境看起来真不错', 'Where is this park? Looks beautiful!', NULL, datetime('now','-20 minutes'))").run();
     // Nested replies (parent_id references comment id)
-    db.prepare("INSERT INTO comments (id, post_id, user_id, content, parent_id, created_at) VALUES (3, 1, 1, '是呀，每天带它出来都很开心～', 1, datetime('now','-25 minutes'))").run();
-    db.prepare("INSERT INTO comments (id, post_id, user_id, content, parent_id, created_at) VALUES (4, 1, 2, '在阳光公园，超适合遛狗！', 2, datetime('now','-15 minutes'))").run();
-    db.prepare("INSERT INTO comments (id, post_id, user_id, content, parent_id, created_at) VALUES (5, 1, 3, '谢谢推荐，周末就去！', 4, datetime('now','-10 minutes'))").run();
+    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (3, 1, 1, '是呀，每天带它出来都很开心～', 'Thanks! He loves coming here every day~', 1, datetime('now','-25 minutes'))").run();
+    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (4, 1, 2, '在阳光公园，超适合遛狗！', 2, datetime('now','-15 minutes'))").run();
+    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (5, 1, 3, '谢谢推荐，周末就去！', 'Thanks! Going there this weekend!', 4, datetime('now','-10 minutes'))").run();
     // Second-level reply (reply to a reply)
-    db.prepare("INSERT INTO comments (id, post_id, user_id, content, parent_id, created_at) VALUES (6, 1, 1, '哈哈不客气，记得早点去占位～', 5, datetime('now','-5 minutes'))").run();
+    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (6, 1, 1, '哈哈不客气，记得早点去占位～', 'No worries, get there early for a good spot!', 5, datetime('now','-5 minutes'))").run();
     console.log('Seed comments inserted');
   }
 } else {

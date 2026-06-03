@@ -43,7 +43,7 @@ if (count.c === 0) {
   
 44|  db.prepare("INSERT INTO posts VALUES (1,1,'今天带贝利去二沙岛公园，阳光正好，遇到好多狗友🐾','[\"https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=800\"]','[\"金毛\",\"公园日常\"]','金毛','二沙岛公园',342,12,1,datetime('now','-5 minutes'))").run();
   db.prepare("INSERT INTO posts VALUES (2,2,'家里来了新成员！两个月大的小布偶，超粘人🥰','[\"https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=800\"]','[\"猫咪\",\"幼猫\"]','猫咪','温馨的家',891,45,0,datetime('now','-5 hours'))").run();
-  db.prepare("INSERT INTO posts VALUES (3,3,'周末在江南西偶遇一只超可爱的八哥犬，主人说它叫豆豆','[\"https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=800\"]','[\"八哥犬\",\"搞笑\"]','八哥犬','江南西',124,8,0,datetime('now','-1 day'))").run();
+  db.prepare("INSERT INTO posts VALUES (3,3,'周末在江南西偶遇一只超可爱的八哥犬，主人说它叫豆豆','[\"https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800\"]','[\"八哥犬\",\"搞笑\"]','八哥犬','江南西',124,8,0,datetime('now','-1 day'))").run();
   db.prepare("INSERT INTO posts VALUES (4,1,'周日下午的慵懒时光，汤圆又在沙发上睡着了💤','[\"https://images.unsplash.com/photo-1586289883499-f11d28aaf52f?w=800\"]','[\"布偶猫\",\"周末\"]','布偶猫','客厅',56,2,1,datetime('now','-2 days'))").run();
   db.prepare("INSERT INTO posts VALUES (5,1,'北京今年的第一场雪！阿柴玩疯了❄️','[\"https://images.unsplash.com/photo-1608744882201-52a7f7f3dd60?w=800\"]','[\"柴犬\",\"下雪\"]','柴犬','城市街道',890,56,0,datetime('now','-5 days'))").run();
   db.prepare("INSERT INTO posts VALUES (6,2,'猫咪玩激光笔简直太搞笑了！根本停不下来 😂🔴','[{\"type\":\"video\",\"url\":\"https://www.w3schools.com/html/mov_bbb.mp4\",\"poster\":\"https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800\"}]','[\"猫咪\",\"搞笑\",\"视频\"]','猫咪','温馨的家',567,34,0,datetime('now','-30 minutes'))").run();

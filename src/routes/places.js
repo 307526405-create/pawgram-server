@@ -62,18 +62,35 @@ router.get('/', (req, res) => {
   res.json({ code: 0, data: { list } });
 });
 
-// GET discover feed (aggregated notes from all places)
+// GET discover feed (real posts from database)
 router.get('/feed/discover', (req, res) => {
   const limit = parseInt(req.query.limit) || 12;
-  const feed = [];
-  for (const [placeId, notes] of Object.entries(seedNotes)) {
-    const place = seedPlaces.find(p => p.id === parseInt(placeId));
-    for (const note of notes) {
-      feed.push({...note, placeName: place?.name, placeType: place?.type, placeRating: place?.rating});
-    }
-  }
-  feed.sort((a, b) => b.likes - a.likes);
-  res.json({ code: 0, data: { list: feed.slice(0, limit), total: feed.length } });
+
+  const posts = db.prepare(`
+    SELECT p.*, u.nickname as user_name, u.avatar as user_avatar
+    FROM posts p JOIN users u ON p.user_id = u.id
+    ORDER BY p.like_count DESC
+    LIMIT ?
+  `).all(limit);
+
+  const total = db.prepare('SELECT COUNT(*) as c FROM posts').get().c;
+
+  const clean = (s) => (s || '[]').replace(/\\"/g, '"');
+  const list = posts.map(p => ({
+    id: p.id,
+    postId: p.id,
+    user: p.user_name,
+    avatar: p.user_avatar,
+    content: p.content,
+    images: JSON.parse(clean(p.images)),
+    likes: p.like_count,
+    comment_count: p.comment_count,
+    breed: p.breed || '',
+    location: p.location || '',
+    time: p.created_at,
+  }));
+
+  res.json({ code: 0, data: { list, total } });
 });
 
 // GET notes for a place

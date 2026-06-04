@@ -10,12 +10,31 @@ const HAVERSINE_SQL = `
 `;
 
 const seedPlaces = [
-  { id:1, name:"二沙岛宠物公园", type:"公园", distance:"2.1km", lat:23.1140, lng:113.2950, rating:4.8, reviews:126, desc:"广州最大的宠物友好公园", phone:"020-87301234" },
-  { id:2, name:"星巴克宠物友好店(天河城)", type:"咖啡馆", distance:"1.5km", lat:23.1320, lng:113.3210, rating:4.5, reviews:89, desc:"提供宠物饮水点和小零食", phone:"020-85591234" },
-  { id:3, name:"珠江公园宠物区", type:"公园", distance:"0.8km", lat:23.1250, lng:113.3350, rating:4.7, reviews:203, desc:"市中心宠物友好公园，遛狗好去处" },
-  { id:4, name:"爪印友好餐厅·宠物主题", type:"餐厅", distance:"3.2km", lat:23.1200, lng:113.3100, rating:4.3, reviews:56, desc:"可以和宠物一起用餐", phone:"020-88991234" },
-  { id:5, name:"白云山宠物徒步路线", type:"户外", distance:"5.8km", lat:23.1850, lng:113.2970, rating:4.9, reviews:341, desc:"最受欢迎的遛狗路线" },
-  { id:6, name:"珠江新城宠物美容馆", type:"美容", distance:"1.9km", lat:23.1190, lng:113.3250, rating:4.6, reviews:178, desc:"金牌美容师", phone:"020-38261234" },
+  { id:1, name:"二沙岛宠物公园", type:"公园", lat:23.1140, lng:113.2950, rating:4.8, reviews:326, desc:"广州最大的宠物友好公园，分大狗区小狗区", phone:"020-87301234" },
+  { id:2, name:"星巴克宠物友好店(天河城)", type:"咖啡馆", lat:23.1320, lng:113.3210, rating:4.5, reviews:189, desc:"户外区可带宠物，提供饮水和小零食", phone:"020-85591234" },
+  { id:3, name:"珠江公园宠物区", type:"公园", lat:23.1250, lng:113.3350, rating:4.7, reviews:403, desc:"市中心宠物友好公园，遛狗草坪超大" },
+  { id:4, name:"爪印友好餐厅·宠物主题", type:"餐厅", lat:23.1200, lng:113.3100, rating:4.3, reviews:156, desc:"可以和宠物一起用餐，有宠物专属餐单", phone:"020-88991234" },
+  { id:5, name:"白云山宠物徒步路线", type:"户外", lat:23.1850, lng:113.2970, rating:4.9, reviews:541, desc:"全程5公里树荫步道，山顶有宠物饮水点" },
+  { id:6, name:"珠江新城宠物美容馆", type:"美容", lat:23.1190, lng:113.3250, rating:4.6, reviews:278, desc:"金牌美容师，赛级洗护标准", phone:"020-38261234" },
+  { id:7, name:"天河公园宠物草坪", type:"公园", lat:23.1265, lng:113.3610, rating:4.4, reviews:198, desc:"超大草坪，早晚遛狗高峰很热闹" },
+  { id:8, name:"越秀公园遛狗专区", type:"公园", lat:23.1403, lng:113.2720, rating:4.5, reviews:267, desc:"历史名园，五羊雕像旁有宠物活动区" },
+  { id:9, name:"海珠湿地公园", type:"户外", lat:23.0820, lng:113.3580, rating:4.8, reviews:612, desc:"广州绿肺，景观超美，适合拍照打卡" },
+  { id:10, name:"大夫山森林公园", type:"户外", lat:22.9480, lng:113.3150, rating:4.7, reviews:389, desc:"番禺后花园，可带狗骑行徒步" },
+  { id:11, name:"华南植物园", type:"公园", lat:23.1875, lng:113.3630, rating:4.6, reviews:445, desc:"超大园区，树木繁多，遛狗避暑好去处" },
+  { id:12, name:"瑞鹏宠物医院(天河分院)", type:"宠物医院", lat:23.1320, lng:113.3480, rating:4.4, reviews:234, desc:"连锁品牌，24小时急诊，设备先进", phone:"020-38761234" },
+  { id:13, name:"芭比堂宠物医院(珠江新城)", type:"宠物医院", lat:23.1195, lng:113.3240, rating:4.6, reviews:312, desc:"眼科专科，全科诊疗，服务态度好", phone:"020-38381234" },
+  { id:14, name:"太古汇宠物友好区", type:"商场", lat:23.1340, lng:113.3330, rating:4.2, reviews:89, desc:"高端商场，部分区域可携带小型宠物" },
+  { id:15, name:"正佳广场宠物乐园", type:"商场", lat:23.1330, lng:113.3280, rating:4.1, reviews:76, desc:"七楼有宠物互动区，可带宠物逛街" },
+  { id:16, name:"广州塔珠江边遛狗道", type:"户外", lat:23.1090, lng:113.3250, rating:4.7, reviews:521, desc:"珠江夜景美，江边步道适合夜遛" },
+  { id:17, name:"大学城中心湖", type:"户外", lat:23.0530, lng:113.3880, rating:4.5, reviews:167, desc:"大草坪环绕湖边，人少狗多超自由" },
+  { id:18, name:"生物岛水墨园绿道", type:"户外", lat:23.0700, lng:113.3800, rating:4.8, reviews:298, desc:"环岛绿道，环境幽静，骑行遛狗绝佳" },
+  { id:19, name:"荔湾湖公园", type:"公园", lat:23.1240, lng:113.2380, rating:4.3, reviews:145, desc:"老西关风情，湖边遛狗别有韵味" },
+  { id:20, name:"东山湖公园", type:"公园", lat:23.1270, lng:113.2870, rating:4.4, reviews:178, desc:"九曲桥+紫荆花，东山口文艺遛狗地" },
+  { id:21, name:"派多格宠物生活馆(天河)", type:"美容", lat:23.1300, lng:113.3400, rating:4.3, reviews:156, desc:"进口洗护产品，美容兼售卖宠物用品", phone:"020-38731234" },
+  { id:22, name:"猫主题咖啡馆·喵星人基地", type:"咖啡馆", lat:23.1280, lng:113.3380, rating:4.6, reviews:423, desc:"可带自家猫咪来交友，有猫爬架和玩具" },
+  { id:23, name:"番禺万达宠物友好区", type:"商场", lat:22.9800, lng:113.3480, rating:4.0, reviews:67, desc:"室外步行街可带宠物，部分店铺欢迎狗狗" },
+  { id:24, name:"琶洲宠物友好咖啡", type:"咖啡馆", lat:23.1040, lng:113.3700, rating:4.4, reviews:134, desc:"江边露台座位，宠物可自由活动", phone:"020-89111234" },
+  { id:25, name:"流花湖公园", type:"公园", lat:23.1390, lng:113.2550, rating:4.3, reviews:156, desc:"湖心岛白宫打卡，遛狗拍照两不误" },
 ];
 
 const seedNotes = {
@@ -43,7 +62,7 @@ const seedNotes = {
 };
 
 let submissions = [];
-let nextId = 7;
+let nextId = 26;
 
 // GET all places (approved only), optionally with distance_km
 router.get('/', (req, res) => {

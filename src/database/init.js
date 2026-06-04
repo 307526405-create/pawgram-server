@@ -14,9 +14,12 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS likes (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, post_id INTEGER, UNIQUE(user_id, post_id));
 `);
 
-// Migration: add lat/lon columns if missing (for existing databases)
-try { db.exec('ALTER TABLE users ADD COLUMN lat REAL DEFAULT 0'); } catch (e) { /* column exists */ }
-try { db.exec('ALTER TABLE users ADD COLUMN lon REAL DEFAULT 0'); } catch (e) { /* column exists */ }
+// Migration: add pet columns if missing
+try { db.exec('ALTER TABLE users ADD COLUMN pet_name TEXT DEFAULT \'\''); } catch (e) {}
+try { db.exec('ALTER TABLE users ADD COLUMN pet_breed TEXT DEFAULT \'\''); } catch (e) {}
+try { db.exec('ALTER TABLE users ADD COLUMN pet_age TEXT DEFAULT \'\''); } catch (e) {}
+try { db.exec('ALTER TABLE users ADD COLUMN pet_gender TEXT DEFAULT \'\''); } catch (e) {}
+try { db.exec('ALTER TABLE users ADD COLUMN pet_personality TEXT DEFAULT \'\''); } catch (e) {}
 
 // Migration: add parent_id if missing (for existing databases)
 try {
@@ -35,11 +38,11 @@ const randGZ = () => ({
 const count = db.prepare('SELECT COUNT(*) as c FROM users').get();
 if (count.c === 0) {
   const u1 = randGZ(); const u2 = randGZ(); const u3 = randGZ(); const u4 = randGZ(); const u5 = randGZ();
-  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (1,'lily','丽丽','','https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=200','爱宠物爱生活',?,?,45,1204,1790,datetime('now'))").run(u1.lat, u1.lon);
-  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (2,'bob','阿波','','https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200','猫咪控',?,?,89,120,450,datetime('now'))").run(u2.lat, u2.lon);
-  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (3,'flower','小花','','https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200','八哥犬妈妈',?,?,567,342,890,datetime('now'))").run(u3.lat, u3.lon);
-  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (4,'alex','刘小帅','','https://images.unsplash.com/photo-1536548665027-b96d34a005ae?w=200','萨摩耶奶爸',?,?,120,89,320,datetime('now'))").run(u4.lat, u4.lon);
-  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,created_at) VALUES (5,'emma','赵小美','','https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200','柴犬爱好者',?,?,210,156,670,datetime('now'))").run(u5.lat, u5.lon);
+  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,pet_name,pet_breed,pet_age,pet_gender,pet_personality,created_at) VALUES (1,'lily','贝利妈妈','','https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=200','爱宠物爱生活',?,?,45,1204,1790,'贝利','金毛','2岁','公','活泼亲人 喜欢游泳',datetime('now'))").run(u1.lat, u1.lon);
+  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,pet_name,pet_breed,pet_age,pet_gender,pet_personality,created_at) VALUES (2,'bob','汤圆爸','','https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200','猫咪控',?,?,89,120,450,'汤圆','布偶猫','8个月','母','粘人精 喜欢踩奶',datetime('now'))").run(u2.lat, u2.lon);
+  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,pet_name,pet_breed,pet_age,pet_gender,pet_personality,created_at) VALUES (3,'flower','豆豆姐姐','','https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200','八哥犬铁粉',?,?,567,342,890,'豆豆','八哥犬','3岁','公','搞笑担当 呼噜声大',datetime('now'))").run(u3.lat, u3.lon);
+  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,pet_name,pet_breed,pet_age,pet_gender,pet_personality,created_at) VALUES (4,'alex','Lucky奶爸','','https://images.unsplash.com/photo-1536548665027-b96d34a005ae?w=200','萨摩耶最可爱',?,?,120,89,320,'Lucky','萨摩耶','1岁半','公','微笑天使 精力旺盛',datetime('now'))").run(u4.lat, u4.lon);
+  db.prepare("INSERT INTO users (id,username,nickname,phone,avatar,bio,lat,lon,follow_count,follower_count,like_count,pet_name,pet_breed,pet_age,pet_gender,pet_personality,created_at) VALUES (5,'emma','阿柴小美','','https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200','柴犬八年资深铲屎官',?,?,210,156,670,'阿柴','柴犬','5岁','母','高冷傲娇 爱拆家',datetime('now'))").run(u5.lat, u5.lon);
   
 44|  db.prepare("INSERT INTO posts VALUES (1,1,'今天带贝利去二沙岛公园，阳光正好，遇到好多狗友🐾','[\"https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=800\"]','[\"金毛\",\"公园日常\"]','金毛','二沙岛公园',342,12,1,datetime('now','-5 minutes'))").run();
   db.prepare("INSERT INTO posts VALUES (2,2,'家里来了新成员！两个月大的小布偶，超粘人🥰','[\"https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=800\"]','[\"猫咪\",\"幼猫\"]','布偶猫','温馨的家',891,45,0,datetime('now','-5 hours'))").run();
@@ -58,7 +61,7 @@ if (count.c === 0) {
     db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (2, 1, 3, '这个公园在哪里呀？环境看起来真不错', 'Where is this park? Looks beautiful!', NULL, datetime('now','-20 minutes'))").run();
     // Nested replies (parent_id references comment id)
     db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (3, 1, 1, '是呀，每天带它出来都很开心～', 'Thanks! He loves coming here every day~', 1, datetime('now','-25 minutes'))").run();
-    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (4, 1, 2, '在阳光公园，超适合遛狗！', 2, datetime('now','-15 minutes'))").run();
+    db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (4, 1, 2, '在阳光公园，超适合遛狗！', 'Sunshine Park is great for dog walking!', 2, datetime('now','-15 minutes'))").run();
     db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (5, 1, 3, '谢谢推荐，周末就去！', 'Thanks! Going there this weekend!', 4, datetime('now','-10 minutes'))").run();
     // Second-level reply (reply to a reply)
     db.prepare("INSERT INTO comments (id, post_id, user_id, content, content_en, parent_id, created_at) VALUES (6, 1, 1, '哈哈不客气，记得早点去占位～', 'No worries, get there early for a good spot!', 5, datetime('now','-5 minutes'))").run();

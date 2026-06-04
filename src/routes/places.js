@@ -70,9 +70,9 @@ router.get('/', (req, res) => {
   const lon = parseFloat(req.query.lon);
   const hasCoords = !isNaN(lat) && !isNaN(lon);
 
-  let list = seedPlaces;
+  let list = [...seedPlaces, ...submissions];
   if (hasCoords) {
-    list = seedPlaces.map(p => {
+    list = list.map(p => {
       const stmt = db.prepare(`SELECT ${HAVERSINE_SQL} as d`);
       const row = stmt.get(lat, p.lat, p.lng, lon, lat, p.lat);
       return { ...p, distance_km: Math.round(row.d * 100) / 100 };

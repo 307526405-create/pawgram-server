@@ -6,7 +6,7 @@ const fmt = (p) => {
   const rawImg = p.images || '[]';
   const rawTag = p.tags || '[]';
   const clean = (s) => s.replace(/\\\"/g, '"');
-  return {...p, images: JSON.parse(clean(rawImg)), media: JSON.parse(clean(rawImg)), tags: JSON.parse(clean(rawTag)), user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar, pet_name: p.pet_name, pet_breed: p.pet_breed, pet_age: p.pet_age, pet_gender: p.pet_gender, pet_personality: p.pet_personality }};
+  return {...p, images: JSON.parse(clean(rawImg)), media: JSON.parse(clean(rawImg)), tags: JSON.parse(clean(rawTag)), user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar, pet_name: p.pet_name, pet_breed: p.pet_breed, pet_age: p.pet_age, pet_gender: p.pet_gender, pet_personality: p.pet_personality, city: p.city, behavior_tags: p.behavior_tags }};
 };
 
 router.get('/', (req, res) => {
@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
   const limit = parseInt(req.query.pageSize) || 10;
   const offset = (page - 1) * limit;
   
-  const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
+  const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
   const total = db.prepare('SELECT COUNT(*) as c FROM posts').get().c;
   
   res.json({ code: 0, data: { list: posts.map(fmt), pagination: { page, pageSize: limit, total, hasMore: offset + limit < total } } });
@@ -22,7 +22,7 @@ router.get('/', (req, res) => {
 
 // GET user profile
 router.get('/user/:id', (req, res) => {
-  const user = db.prepare('SELECT id, username, nickname, avatar, bio, lat, lon, follow_count, follower_count, like_count, pet_name, pet_breed, pet_age, pet_gender, pet_personality FROM users WHERE id = ?').get(req.params.id);
+  const user = db.prepare('SELECT id, username, nickname, avatar, bio, lat, lon, follow_count, follower_count, like_count, pet_name, pet_breed, pet_age, pet_gender, pet_personality, city, behavior_tags FROM users WHERE id = ?').get(req.params.id);
   if (!user) return res.status(404).json({ code: -1, msg: '用户不存在' });
   const posts = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC').all(req.params.id);
   res.json({ code: 0, data: { user, posts: posts.map(fmt) } });

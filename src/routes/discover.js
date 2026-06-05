@@ -23,7 +23,7 @@ router.get('/nearby', (req, res) => {
   // Nearby posts with distance, joined through users
   const posts = db.prepare(`
     SELECT p.*, u.nickname as user_name, u.avatar as user_avatar,
-      u.pet_name, u.pet_breed, u.pet_age,
+      u.pet_name, u.pet_breed, u.pet_age, u.city, u.behavior_tags,
       ${HAVERSINE_SQL} as distance_km
     FROM posts p
     JOIN users u ON p.user_id = u.id
@@ -38,13 +38,13 @@ router.get('/nearby', (req, res) => {
     ...p,
     images: JSON.parse(clean(p.images)),
     tags: JSON.parse(clean(p.tags)),
-    user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar, pet_name: p.pet_name, pet_breed: p.pet_breed, pet_age: p.pet_age },
+    user: { id: p.user_id, name: p.user_name, avatar: p.user_avatar, pet_name: p.pet_name, pet_breed: p.pet_breed, pet_age: p.pet_age, city: p.city, behavior_tags: p.behavior_tags },
     distance_km: Math.round(p.distance_km * 100) / 100,
   }));
 
   // Nearby users (distinct from post authors, limited to users with coordinates)
   const users = db.prepare(`
-    SELECT u.id, u.nickname, u.avatar, u.bio, u.pet_name, u.pet_breed, u.pet_age,
+    SELECT u.id, u.nickname, u.avatar, u.bio, u.pet_name, u.pet_breed, u.pet_age, u.city, u.behavior_tags,
       ${HAVERSINE_SQL} as distance_km
     FROM users u
     WHERE u.lat != 0 AND u.lon != 0

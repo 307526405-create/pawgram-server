@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS comment_likes (id INTEGER PRIMARY KEY AUTOINCREMENT, 
   CREATE TABLE IF NOT EXISTS follows (id INTEGER PRIMARY KEY AUTOINCREMENT, follower_id INTEGER NOT NULL, followed_id INTEGER NOT NULL, UNIQUE(follower_id, followed_id));
   CREATE TABLE IF NOT EXISTS paw_shakes (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, user_id INTEGER NOT NULL, count INTEGER DEFAULT 1, UNIQUE(post_id, user_id));
   CREATE TABLE IF NOT EXISTS favorites (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, post_id INTEGER NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, post_id));
+  CREATE TABLE IF NOT EXISTS blocked_users (blocker_id INTEGER NOT NULL, blocked_id INTEGER NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(blocker_id, blocked_id));
+  CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, reporter_id INTEGER NOT NULL, post_id INTEGER NOT NULL, reason TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
 `);
 
 // Migration: add pet columns if missing
@@ -43,6 +45,10 @@ try { db.exec('ALTER TABLE posts ADD COLUMN featured INTEGER DEFAULT 0'); } catc
 
 // Migration: add paw_shake_count to posts if missing
 try { db.exec('ALTER TABLE posts ADD COLUMN paw_shake_count INTEGER DEFAULT 0'); } catch (e) {}
+
+// Migration: add privacy fields to users
+try { db.exec('ALTER TABLE users ADD COLUMN hide_favorites INTEGER DEFAULT 0'); } catch (e) {}
+try { db.exec('ALTER TABLE users ADD COLUMN hide_likes INTEGER DEFAULT 0'); } catch (e) {}
 
 // Helper: random Guangzhou-adjacent coordinate (23.1±0.05, 113.3±0.05)
 const randGZ = () => ({

@@ -17,26 +17,26 @@ router.get('/', (req, res) => {
 
   // Featured filter
   if (req.query.featured === '1') {
-    const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM posts p JOIN users u ON p.user_id = u.id WHERE p.featured = 1 ORDER BY p.created_at DESC LIMIT 5`).all();
+    const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM posts p JOIN users u ON p.user_id = u.id WHERE p.featured = 1 AND p.user_id NOT IN (SELECT blocked_id FROM blocked_users WHERE blocker_id = ?) AND p.user_id NOT IN (SELECT blocker_id FROM blocked_users WHERE blocked_id = ?) ORDER BY p.created_at DESC LIMIT 5`).all(userId, userId);
     return res.json({ code: 0, data: { list: posts.map(fmt) } });
   }
 
   // Favorites filter
   if (req.query.favorites === '1') {
-    const favRows = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM favorites f JOIN posts p ON f.post_id = p.id JOIN users u ON p.user_id = u.id WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?`).all(userId, limit, offset);
-    const totalFav = db.prepare('SELECT COUNT(*) as c FROM favorites WHERE user_id = ?').get(userId).c;
+    const favRows = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM favorites f JOIN posts p ON f.post_id = p.id JOIN users u ON p.user_id = u.id WHERE f.user_id = ? AND p.user_id NOT IN (SELECT blocked_id FROM blocked_users WHERE blocker_id = ?) AND p.user_id NOT IN (SELECT blocker_id FROM blocked_users WHERE blocked_id = ?) ORDER BY f.created_at DESC LIMIT ? OFFSET ?`).all(userId, userId, userId, limit, offset);
+    const totalFav = db.prepare('SELECT COUNT(*) as c FROM favorites f JOIN posts p ON f.post_id = p.id WHERE f.user_id = ? AND p.user_id NOT IN (SELECT blocked_id FROM blocked_users WHERE blocker_id = ?) AND p.user_id NOT IN (SELECT blocker_id FROM blocked_users WHERE blocked_id = ?)').get(userId, userId, userId).c;
     return res.json({ code: 0, data: { list: favRows.map(fmt), pagination: { page, pageSize: limit, total: totalFav, hasMore: offset + limit < totalFav } } });
   }
 
-  const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
-  const total = db.prepare('SELECT COUNT(*) as c FROM posts').get().c;
+  const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM posts p JOIN users u ON p.user_id = u.id WHERE p.user_id NOT IN (SELECT blocked_id FROM blocked_users WHERE blocker_id = ?) AND p.user_id NOT IN (SELECT blocker_id FROM blocked_users WHERE blocked_id = ?) ORDER BY p.created_at DESC LIMIT ? OFFSET ?`).all(userId, userId, limit, offset);
+  const total = db.prepare('SELECT COUNT(*) as c FROM posts WHERE user_id NOT IN (SELECT blocked_id FROM blocked_users WHERE blocker_id = ?) AND user_id NOT IN (SELECT blocker_id FROM blocked_users WHERE blocked_id = ?)').get(userId, userId).c;
 
   res.json({ code: 0, data: { list: posts.map(fmt), pagination: { page, pageSize: limit, total, hasMore: offset + limit < total } } });
 });
 
 // GET user profile
 router.get('/user/:id', (req, res) => {
-  const user = db.prepare('SELECT id, username, nickname, avatar, bio, lat, lon, follow_count, follower_count, like_count, pet_name, pet_breed, pet_age, pet_gender, pet_personality, city, behavior_tags FROM users WHERE id = ?').get(req.params.id);
+  const user = db.prepare('SELECT id, username, nickname, avatar, bio, lat, lon, follow_count, follower_count, like_count, level, post_count, pet_name, pet_breed, pet_age, pet_gender, pet_personality, city, behavior_tags FROM users WHERE id = ?').get(req.params.id);
   if (!user) return res.status(404).json({ code: -1, msg: '用户不存在' });
   const posts = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC').all(req.params.id);
   res.json({ code: 0, data: { user, posts: posts.map(fmt) } });
@@ -53,6 +53,42 @@ router.post('/', (req, res) => {
 
   const info = db.prepare('INSERT INTO posts (user_id, content, images, tags, breed, location, like_count, comment_count) VALUES (?, ?, ?, ?, ?, ?, 0, 0)').run(userId, content || '', imageJson, tagJson, breed || '', location || '');
   res.json({ code: 0, data: { id: info.lastInsertRowid } });
+});
+
+// GET search posts and users by keyword
+router.get('/search', (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.json({ code: 0, data: { posts: [], users: [] } });
+
+  const keyword = `%${q}%`;
+
+  const posts = db.prepare(`
+    SELECT p.*, u.nickname as user_name, u.avatar as user_avatar,
+           u.pet_name, u.pet_breed, u.pet_age, u.pet_gender,
+           u.pet_personality, u.city, u.behavior_tags
+    FROM posts p
+    JOIN users u ON p.user_id = u.id
+    WHERE p.content LIKE ? OR p.breed LIKE ? OR p.tags LIKE ? OR p.location LIKE ?
+    ORDER BY p.like_count DESC
+    LIMIT 20
+  `).all(keyword, keyword, keyword, keyword);
+
+  const users = db.prepare(`
+    SELECT id, username, nickname, avatar, bio, pet_name, pet_breed,
+           follow_count, follower_count, like_count
+    FROM users
+    WHERE nickname LIKE ? OR pet_name LIKE ? OR pet_breed LIKE ? OR bio LIKE ?
+    ORDER BY follower_count DESC
+    LIMIT 20
+  `).all(keyword, keyword, keyword, keyword);
+
+  res.json({
+    code: 0,
+    data: {
+      posts: posts.map(p => ({...fmt(p), description: p.content})),
+      users
+    }
+  });
 });
 
 // POST paw shake
@@ -138,25 +174,50 @@ router.post('/:id/unlike', (req, res) => {
   res.json({ code: 0, data: { liked: false, likes: postLikeCount ? postLikeCount.like_count : 0 } });
 });
 
-// GET comments for a post (nested structure)
+// GET comments for a post (nested structure, with pagination)
 router.get('/:id/comments', (req, res) => {
   const postId = req.params.id;
   const lang = req.query.lang || 'zh';
-  const rows = db.prepare(`
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const offset = (page - 1) * pageSize;
+
+  // Count total root comments
+  const totalRoot = db.prepare(
+    'SELECT COUNT(*) as c FROM comments WHERE post_id = ? AND parent_id IS NULL'
+  ).get(postId).c;
+
+  // Fetch root comments with pagination
+  const roots = db.prepare(`
     SELECT c.*, u.nickname as user_name, u.avatar as user_avatar
     FROM comments c JOIN users u ON c.user_id = u.id
-    WHERE c.post_id = ?
+    WHERE c.post_id = ? AND c.parent_id IS NULL
     ORDER BY c.created_at ASC
-  `).all(postId);
+    LIMIT ? OFFSET ?
+  `).all(postId, pageSize, offset);
 
-  // Build nested tree (max 2 levels)
-  const map = {};
-  const roots = [];
+  // Collect root IDs to fetch their replies
+  const rootIds = roots.map(r => r.id);
+
+  // Fetch all replies for these roots
+  let replyRows = [];
+  if (rootIds.length > 0) {
+    const placeholders = rootIds.map(() => '?').join(',');
+    replyRows = db.prepare(`
+      SELECT c.*, u.nickname as user_name, u.avatar as user_avatar
+      FROM comments c JOIN users u ON c.user_id = u.id
+      WHERE c.parent_id IN (${placeholders})
+      ORDER BY c.created_at ASC
+    `).all(...rootIds);
+  }
 
   const getContent = (r) => (lang === 'en' && r.content_en) ? r.content_en : r.content;
 
-  rows.forEach((r) => {
-    const node = {
+  // Build map for all loaded comments
+  const map = {};
+  const allRows = [...roots, ...replyRows];
+  allRows.forEach((r) => {
+    map[r.id] = {
       id: r.id,
       user: { id: r.user_id, name: r.user_name, avatar: r.user_avatar },
       content: getContent(r),
@@ -165,24 +226,27 @@ router.get('/:id/comments', (req, res) => {
       likes_count: r.likes_count || 0,
       replies: [],
     };
-    map[r.id] = node;
   });
 
-  rows.forEach((r) => {
+  // Attach replies to roots
+  replyRows.forEach((r) => {
     const node = map[r.id];
     if (r.parent_id && map[r.parent_id]) {
-      const parent = map[r.parent_id];
-      if (parent.parent_id) {
-        roots.push(node);
-      } else {
-        parent.replies.push(node);
-      }
-    } else {
-      roots.push(node);
+      map[r.parent_id].replies.push(node);
     }
   });
 
-  res.json({ code: 0, data: roots });
+  const rootNodes = roots.map(r => map[r.id]);
+
+  const hasMore = offset + pageSize < totalRoot;
+
+  res.json({
+    code: 0,
+    data: {
+      list: rootNodes,
+      pagination: { page, pageSize, total: totalRoot, hasMore }
+    }
+  });
 });
 
 // POST comment (optionally as a reply)
@@ -249,6 +313,20 @@ router.post('/:postId/comments/:commentId/like', (req, res) => {
 
   const comment = db.prepare('SELECT likes_count FROM comments WHERE id = ?').get(commentId);
   res.json({ code: 0, data: { liked: !existing, likes: comment ? comment.likes_count : 0 } });
+});
+
+// POST report a post
+router.post('/:id/report', (req, res) => {
+  const postId = parseInt(req.params.id);
+  const reporterId = req.body.userId || 1;
+  const { reason } = req.body;
+  if (!reason) return res.status(400).json({ code: -1, msg: '请选择举报理由' });
+
+  const post = db.prepare('SELECT id FROM posts WHERE id = ?').get(postId);
+  if (!post) return res.status(404).json({ code: -1, msg: '帖子不存在' });
+
+  db.prepare('INSERT INTO reports (reporter_id, post_id, reason) VALUES (?, ?, ?)').run(reporterId, postId, reason);
+  res.json({ code: 0, data: { reported: true } });
 });
 
 module.exports = router;

@@ -11,6 +11,7 @@ app.use('/api/places', require('./routes/places'));
 app.use('/api/discover', require('./routes/discover'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/auth', require('./routes/auth'));
 
 // Catch-all for unmatched routes
 app.use((req, res, next) => {

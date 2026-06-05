@@ -78,6 +78,7 @@ router.get('/:id/comments', (req, res) => {
       content: getContent(r),
       parent_id: r.parent_id,
       created_at: r.created_at,
+      likes_count: r.likes_count || 0,
       replies: [],
     };
     map[r.id] = node;
@@ -114,6 +115,27 @@ router.post('/:id/comments', (req, res) => {
   ).run(postId, userId, content.trim(), parent_id || null);
 
   res.json({ code: 0, data: { id: info.lastInsertRowid } });
+});
+
+// Toggle comment like
+router.post('/:postId/comments/:commentId/like', (req, res) => {
+  const { commentId } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) return res.status(400).json({ code: -1, msg: 'userId is required' });
+
+  const existing = db.prepare('SELECT id FROM comment_likes WHERE user_id = ? AND comment_id = ?').get(userId, commentId);
+
+  if (existing) {
+    db.prepare('DELETE FROM comment_likes WHERE user_id = ? AND comment_id = ?').run(userId, commentId);
+    db.prepare('UPDATE comments SET likes_count = MAX(0, likes_count - 1) WHERE id = ?').run(commentId);
+  } else {
+    db.prepare('INSERT INTO comment_likes (user_id, comment_id) VALUES (?, ?)').run(userId, commentId);
+    db.prepare('UPDATE comments SET likes_count = likes_count + 1 WHERE id = ?').run(commentId);
+  }
+
+  const comment = db.prepare('SELECT likes_count FROM comments WHERE id = ?').get(commentId);
+  res.json({ code: 0, data: { liked: !existing, likes: comment ? comment.likes_count : 0 } });
 });
 
 module.exports = router;

@@ -12,6 +12,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, content TEXT, images TEXT DEFAULT '[]', tags TEXT DEFAULT '[]', breed TEXT DEFAULT '', location TEXT DEFAULT '', like_count INTEGER DEFAULT 0, comment_count INTEGER DEFAULT 0, is_liked INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, user_id INTEGER, content TEXT, content_en TEXT, reply_to INTEGER, parent_id INTEGER REFERENCES comments(id), created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS likes (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, post_id INTEGER, UNIQUE(user_id, post_id));
+CREATE TABLE IF NOT EXISTS comment_likes (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, comment_id INTEGER, UNIQUE(user_id, comment_id));
 `);
 
 // Migration: add pet columns if missing
@@ -22,6 +23,9 @@ try { db.exec('ALTER TABLE users ADD COLUMN pet_gender TEXT DEFAULT \'\''); } ca
 try { db.exec('ALTER TABLE users ADD COLUMN pet_personality TEXT DEFAULT \'\''); } catch (e) {}
 try { db.exec("ALTER TABLE users ADD COLUMN city TEXT DEFAULT '广州'"); } catch (e) {}
 try { db.exec("ALTER TABLE users ADD COLUMN behavior_tags TEXT DEFAULT '[]'"); } catch (e) {}
+
+// Migration: add likes_count to comments if missing
+try { db.exec('ALTER TABLE comments ADD COLUMN likes_count INTEGER DEFAULT 0'); } catch (e) {}
 
 // Migration: add parent_id if missing (for existing databases)
 try {

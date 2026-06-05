@@ -13,6 +13,20 @@ router.get('/', (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.pageSize) || 10;
   const offset = (page - 1) * limit;
+  const userId = parseInt(req.query.userId) || 1;
+
+  // Featured filter
+  if (req.query.featured === '1') {
+    const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM posts p JOIN users u ON p.user_id = u.id WHERE p.featured = 1 ORDER BY p.created_at DESC LIMIT 5`).all();
+    return res.json({ code: 0, data: { list: posts.map(fmt) } });
+  }
+
+  // Favorites filter
+  if (req.query.favorites === '1') {
+    const favRows = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM favorites f JOIN posts p ON f.post_id = p.id JOIN users u ON p.user_id = u.id WHERE f.user_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?`).all(userId, limit, offset);
+    const totalFav = db.prepare('SELECT COUNT(*) as c FROM favorites WHERE user_id = ?').get(userId).c;
+    return res.json({ code: 0, data: { list: favRows.map(fmt), pagination: { page, pageSize: limit, total: totalFav, hasMore: offset + limit < totalFav } } });
+  }
 
   const posts = db.prepare(`SELECT p.*, u.nickname as user_name, u.avatar as user_avatar, u.pet_name, u.pet_breed, u.pet_age, u.pet_gender, u.pet_personality, u.city, u.behavior_tags FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`).all(limit, offset);
   const total = db.prepare('SELECT COUNT(*) as c FROM posts').get().c;
@@ -39,6 +53,38 @@ router.post('/', (req, res) => {
 
   const info = db.prepare('INSERT INTO posts (user_id, content, images, tags, breed, location, like_count, comment_count) VALUES (?, ?, ?, ?, ?, ?, 0, 0)').run(userId, content || '', imageJson, tagJson, breed || '', location || '');
   res.json({ code: 0, data: { id: info.lastInsertRowid } });
+});
+
+// POST paw shake
+router.post('/:id/pawshake', (req, res) => {
+  const postId = parseInt(req.params.id);
+  const userId = req.body.userId || 1;
+
+  const existing = db.prepare('SELECT id, count FROM paw_shakes WHERE post_id = ? AND user_id = ?').get(postId, userId);
+  if (existing) {
+    db.prepare('UPDATE paw_shakes SET count = count + 1 WHERE id = ?').run(existing.id);
+    db.prepare('UPDATE posts SET paw_shake_count = paw_shake_count + 1 WHERE id = ?').run(postId);
+  } else {
+    db.prepare('INSERT INTO paw_shakes (post_id, user_id, count) VALUES (?, ?, 1)').run(postId, userId);
+    db.prepare('UPDATE posts SET paw_shake_count = paw_shake_count + 1 WHERE id = ?').run(postId);
+  }
+
+  const post = db.prepare('SELECT paw_shake_count FROM posts WHERE id = ?').get(postId);
+  res.json({ code: 0, data: { count: post ? post.paw_shake_count : 0 } });
+});
+
+// Toggle favorite
+router.post('/:id/favorite', (req, res) => {
+  const postId = parseInt(req.params.id);
+  const userId = req.body.userId || 1;
+
+  const existing = db.prepare('SELECT id FROM favorites WHERE user_id = ? AND post_id = ?').get(userId, postId);
+  if (existing) {
+    db.prepare('DELETE FROM favorites WHERE user_id = ? AND post_id = ?').run(userId, postId);
+    return res.json({ code: 0, data: { favorited: false } });
+  }
+  db.prepare('INSERT INTO favorites (user_id, post_id) VALUES (?, ?)').run(userId, postId);
+  res.json({ code: 0, data: { favorited: true } });
 });
 
 // GET single post by ID

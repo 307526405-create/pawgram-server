@@ -2,6 +2,40 @@ const express = require('express');
 const db = require('../database/init');
 const router = express.Router();
 
+// PUT /api/users/:id — update user profile (pet fields)
+router.put('/:id', (req, res) => {
+  const userId = parseInt(req.params.id);
+  const { pet_name, pet_breed, pet_age, pet_gender, pet_personality } = req.body;
+
+  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
+  if (!user) return res.status(404).json({ code: -1, msg: '用户不存在' });
+
+  const fields = [];
+  const values = [];
+  for (const [k, v] of Object.entries({ pet_name, pet_breed, pet_age, pet_gender, pet_personality })) {
+    if (v !== undefined) { fields.push(`${k} = ?`); values.push(v); }
+  }
+  if (fields.length === 0) return res.json({ code: 0, data: { updated: false } });
+
+  values.push(userId);
+  db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+
+  const updated = db.prepare(
+    'SELECT id, username, nickname, avatar, bio, pet_name, pet_breed, pet_age, pet_gender, pet_personality FROM users WHERE id = ?'
+  ).get(userId);
+  res.json({ code: 0, data: { user: updated } });
+});
+
+// GET /api/users/:id — get user profile
+router.get('/:id', (req, res) => {
+  const userId = parseInt(req.params.id);
+  const user = db.prepare(
+    'SELECT id, username, nickname, avatar, bio, pet_name, pet_breed, pet_age, pet_gender, pet_personality FROM users WHERE id = ?'
+  ).get(userId);
+  if (!user) return res.status(404).json({ code: -1, msg: '用户不存在' });
+  res.json({ code: 0, data: { user } });
+});
+
 // POST /api/users/:id/follow
 router.post('/:id/follow', (req, res) => {
   const targetUserId = parseInt(req.params.id);

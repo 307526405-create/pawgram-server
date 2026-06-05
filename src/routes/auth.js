@@ -232,6 +232,222 @@ router.post('/wechat-login', async (req, res) => {
   }
 });
 
+// POST /api/auth/apple-login
+router.post('/apple-login', async (req, res) => {
+  try {
+    const { identityToken } = req.body;
+
+    if (!identityToken) {
+      return res.json({ code: -1, msg: '缺少Apple身份令牌' });
+    }
+
+    const appleMode = process.env.APPLE_MODE || 'mock';
+    let appleId, email, nickname;
+
+    if (appleMode === 'mock') {
+      // Mock mode: use fake Apple user info
+      console.log('[Apple] Mock mode - using test apple_id for token:', identityToken.slice(0, 20) + '...');
+      appleId = 'mock_apple_' + identityToken.replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+      nickname = '苹果用户' + identityToken.slice(-4);
+      email = '';
+    } else {
+      // Production mode: verify identityToken with Apple's public keys
+      // Apple's JWKS endpoint: https://appleid.apple.com/auth/keys
+      const jwksUrl = 'https://appleid.apple.com/auth/keys';
+      console.log('[Apple] Fetching Apple JWKS...');
+
+      let jwksRes;
+      try {
+        jwksRes = await fetch(jwksUrl);
+      } catch (fetchErr) {
+        console.error('[Apple] Fetch JWKS error:', fetchErr.message);
+        return res.json({ code: -1, msg: 'Apple服务器连接失败，请稍后重试' });
+      }
+
+      const jwksData = await jwksRes.json();
+
+      // Decode the identityToken header to get kid
+      const tokenParts = identityToken.split('.');
+      if (tokenParts.length !== 3) {
+        return res.json({ code: -1, msg: '无效的Apple身份令牌' });
+      }
+      const header = JSON.parse(Buffer.from(tokenParts[0], 'base64').toString('utf8'));
+      const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString('utf8'));
+
+      // Find the matching key
+      const key = jwksData.keys.find(k => k.kid === header.kid);
+      if (!key) {
+        return res.json({ code: -1, msg: 'Apple密钥匹配失败' });
+      }
+
+      // Verify the token using the public key
+      const jose = require('jose');
+      try {
+        const publicKey = await jose.importJWK(key, header.alg);
+        await jose.jwtVerify(identityToken, publicKey, {
+          issuer: 'https://appleid.apple.com',
+          audience: process.env.APPLE_CLIENT_ID || 'com.pawgram.app',
+        });
+      } catch (verifyErr) {
+        console.error('[Apple] Token verify error:', verifyErr.message);
+        return res.json({ code: -1, msg: 'Apple身份令牌验证失败' });
+      }
+
+      appleId = payload.sub;
+      email = payload.email || '';
+      nickname = email ? email.split('@')[0] : '苹果用户';
+    }
+
+    // Find or create user by apple_id
+    let user = db.prepare('SELECT * FROM users WHERE apple_id = ?').get(appleId);
+
+    if (!user) {
+      // Create new user
+      const result = db.prepare(
+        'INSERT INTO users (username, nickname, phone, avatar, apple_id, city, behavior_tags, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)'
+      ).run(
+        'apple_' + appleId.slice(0, 12),
+        nickname,
+        '',
+        '',
+        appleId,
+        '广州',
+        '["友好"]'
+      );
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
+      console.log('[Apple] Created new user:', user.id, user.nickname);
+    } else {
+      console.log('[Apple] Existing user logged in:', user.id, user.nickname);
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, phone: user.phone || '', apple_id: appleId },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      code: 0,
+      data: {
+        token,
+        user: {
+          id: user.id,
+          phone: user.phone || '',
+          nickname: user.nickname || nickname,
+          avatar: user.avatar || '',
+          apple_id: appleId,
+        },
+      },
+    });
+  } catch (err) {
+    console.error('[Apple] Unexpected error:', err);
+    res.json({ code: -1, msg: 'Apple登录异常，请稍后重试' });
+  }
+});
+
+// POST /api/auth/google-login
+router.post('/google-login', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.json({ code: -1, msg: '缺少Google身份令牌' });
+    }
+
+    const googleMode = process.env.GOOGLE_MODE || 'mock';
+    let googleId, nickname, avatar, email;
+
+    if (googleMode === 'mock') {
+      console.log('[Google] Mock mode - using test google_id for token:', idToken.slice(0, 20) + '...');
+      googleId = 'mock_google_' + idToken.replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+      nickname = '谷歌用户' + idToken.slice(-4);
+      avatar = '';
+      email = '';
+    } else {
+      // Production mode: verify idToken with Google's tokeninfo endpoint
+      const tokenInfoUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`;
+      console.log('[Google] Verifying idToken...');
+
+      let tokenRes;
+      try {
+        tokenRes = await fetch(tokenInfoUrl);
+      } catch (fetchErr) {
+        console.error('[Google] Fetch tokeninfo error:', fetchErr.message);
+        return res.json({ code: -1, msg: 'Google服务器连接失败，请稍后重试' });
+      }
+
+      const tokenData = await tokenRes.json();
+      console.log('[Google] TokenInfo response:', JSON.stringify(tokenData).slice(0, 200));
+
+      if (tokenData.error) {
+        console.error('[Google] Token error:', tokenData);
+        return res.json({ code: -1, msg: 'Google身份令牌验证失败' });
+      }
+
+      // Verify audience matches our client ID
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (clientId && tokenData.aud !== clientId) {
+        return res.json({ code: -1, msg: 'Google令牌audience不匹配' });
+      }
+
+      googleId = tokenData.sub;
+      email = tokenData.email || '';
+      nickname = email ? email.split('@')[0] : (tokenData.name || '谷歌用户');
+      avatar = tokenData.picture || '';
+    }
+
+    // Find or create user by google_id
+    let user = db.prepare('SELECT * FROM users WHERE google_id = ?').get(googleId);
+
+    if (!user) {
+      const result = db.prepare(
+        'INSERT INTO users (username, nickname, phone, avatar, google_id, city, behavior_tags, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)'
+      ).run(
+        'google_' + googleId.slice(0, 12),
+        nickname,
+        '',
+        avatar,
+        googleId,
+        '广州',
+        '["友好"]'
+      );
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
+      console.log('[Google] Created new user:', user.id, user.nickname);
+    } else {
+      if (nickname && (user.nickname !== nickname || user.avatar !== avatar)) {
+        db.prepare('UPDATE users SET nickname = ?, avatar = ? WHERE id = ?').run(nickname, avatar, user.id);
+        user.nickname = nickname;
+        user.avatar = avatar;
+      }
+      console.log('[Google] Existing user logged in:', user.id, user.nickname);
+    }
+
+    const token = jwt.sign(
+      { id: user.id, phone: user.phone || '', google_id: googleId },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      code: 0,
+      data: {
+        token,
+        user: {
+          id: user.id,
+          phone: user.phone || '',
+          nickname: user.nickname || nickname,
+          avatar: user.avatar || avatar,
+          google_id: googleId,
+        },
+      },
+    });
+  } catch (err) {
+    console.error('[Google] Unexpected error:', err);
+    res.json({ code: -1, msg: 'Google登录异常，请稍后重试' });
+  }
+});
+
 // Middleware to verify JWT token
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;

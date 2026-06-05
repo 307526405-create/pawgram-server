@@ -55,6 +55,14 @@ try { db.exec('ALTER TABLE users ADD COLUMN hide_likes INTEGER DEFAULT 0'); } ca
 try { db.exec('ALTER TABLE users ADD COLUMN openid TEXT'); } catch (e) {}
 try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_openid ON users(openid)'); } catch (e) {}
 
+// Migration: add apple_id for Apple login
+try { db.exec('ALTER TABLE users ADD COLUMN apple_id TEXT'); } catch (e) {}
+try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_apple_id ON users(apple_id)'); } catch (e) {}
+
+// Migration: add google_id for Google login
+try { db.exec('ALTER TABLE users ADD COLUMN google_id TEXT'); } catch (e) {}
+try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id)'); } catch (e) {}
+
 // Helper: random Guangzhou-adjacent coordinate (23.1±0.05, 113.3±0.05)
 const randGZ = () => ({
   lat: +(23.1 + (Math.random() - 0.5) * 0.1).toFixed(6),

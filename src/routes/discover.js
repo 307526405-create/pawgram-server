@@ -10,10 +10,10 @@ const HAVERSINE_SQL = `
   ))
 `;
 
-// GET /api/discover/nearby?lat=23.1291&lon=113.2644&limit=20
-router.get('/nearby', (req, res) => {
+// Shared handler for nearby users + posts
+function handleNearby(req, res) {
   const lat = parseFloat(req.query.lat);
-  const lon = parseFloat(req.query.lon);
+  const lon = parseFloat(req.query.lng) || parseFloat(req.query.lon);
   const limit = parseInt(req.query.limit) || 20;
 
   if (isNaN(lat) || isNaN(lon)) {
@@ -64,6 +64,11 @@ router.get('/nearby', (req, res) => {
       users: userList,
     },
   });
-});
+}
+
+// GET /api/discover?lat=23.1&lng=113.3
+router.get('/', handleNearby);
+// GET /api/discover/nearby?lat=23.1&lng=113.3
+router.get('/nearby', handleNearby);
 
 module.exports = router;

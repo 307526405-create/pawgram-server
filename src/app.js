@@ -12,5 +12,21 @@ app.use('/api/discover', require('./routes/discover'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/users', require('./routes/users'));
 
+// Catch-all for unmatched routes
+app.use((req, res, next) => {
+  const err = new Error(`接口不存在: ${req.method} ${req.path}`);
+  err.status = 404;
+  next(err);
+});
+
+// Global error handler — converts all uncaught errors to JSON
+app.use((err, req, res, _next) => {
+  console.error('[Error]', err.stack || err.message || err);
+  res.status(err.status || 500).json({
+    code: -1,
+    msg: err.message || '服务器内部错误',
+  });
+});
+
 const PORT = 3000;
 app.listen(PORT, () => console.log(`PawGram API: http://localhost:${PORT}`));

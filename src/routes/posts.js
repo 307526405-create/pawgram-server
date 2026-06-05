@@ -1,6 +1,9 @@
 const express = require('express');
 const db = require('../database/init');
 const router = express.Router();
+const { sendPushToUser } = require('../services/push');
+const { uploadImage } = require('../services/upload');
+const crypto = require('crypto');
 
 const fmt = (p) => {
   const rawImg = p.images || '[]';
@@ -43,16 +46,33 @@ router.get('/user/:id', (req, res) => {
 });
 
 // POST create post
-router.post('/', (req, res) => {
-  const { content, images, tags, breed, location } = req.body;
-  if (!content && (!images || images.length === 0)) return res.status(400).json({ code: -1, msg: '内容不能为空' });
+router.post('/', async (req, res, next) => {
+  try {
+    const { content, images, tags, breed, location } = req.body;
+    if (!content && (!images || images.length === 0)) return res.status(400).json({ code: -1, msg: '内容不能为空' });
 
-  const userId = 1; // current user
-  const imageJson = JSON.stringify(images || []);
-  const tagJson = JSON.stringify(tags || []);
+    const userId = 1; // current user
 
-  const info = db.prepare('INSERT INTO posts (user_id, content, images, tags, breed, location, like_count, comment_count) VALUES (?, ?, ?, ?, ?, ?, 0, 0)').run(userId, content || '', imageJson, tagJson, breed || '', location || '');
-  res.json({ code: 0, data: { id: info.lastInsertRowid } });
+    // Upload base64 images to COS (or mock) and replace with URLs
+    let processedImages = images || [];
+    if (processedImages.length > 0) {
+      const uploadPromises = processedImages.map((img) => {
+        if (typeof img === 'string' && img.startsWith('data:')) {
+          return uploadImage(img, crypto.randomUUID());
+        }
+        return Promise.resolve(img); // already a URL, keep as-is
+      });
+      processedImages = await Promise.all(uploadPromises);
+    }
+
+    const imageJson = JSON.stringify(processedImages);
+    const tagJson = JSON.stringify(tags || []);
+
+    const info = db.prepare('INSERT INTO posts (user_id, content, images, tags, breed, location, like_count, comment_count) VALUES (?, ?, ?, ?, ?, ?, 0, 0)').run(userId, content || '', imageJson, tagJson, breed || '', location || '');
+    res.json({ code: 0, data: { id: info.lastInsertRowid } });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET search posts and users by keyword
@@ -153,6 +173,8 @@ router.post('/:id/like', (req, res) => {
     db.prepare('INSERT INTO notifications (user_id, type, from_user_id, post_id, content) VALUES (?, ?, ?, ?, ?)').run(
       post.user_id, 'likes', userId, postId, liker ? `${liker.nickname} 赞了你的帖子` : '有人赞了你的帖子'
     );
+    // Push notification
+    sendPushToUser(post.user_id, 'likes', '新点赞', liker ? `${liker.nickname} 赞了你的帖子` : '有人赞了你的帖子');
   }
 
   const postLikeCount = db.prepare('SELECT like_count FROM posts WHERE id = ?').get(postId);
@@ -269,6 +291,8 @@ router.post('/:id/comments', (req, res) => {
     db.prepare('INSERT INTO notifications (user_id, type, from_user_id, post_id, content) VALUES (?, ?, ?, ?, ?)').run(
       post.user_id, 'comments', userId, postId, commenter ? `${commenter.nickname} 评论了你的帖子` : '有人评论了你的帖子'
     );
+    // Push notification
+    sendPushToUser(post.user_id, 'comments', '新评论', commenter ? `${commenter.nickname} 评论了你的帖子` : '有人评论了你的帖子');
   }
 
   // If replying to another comment, also notify that comment's author
@@ -279,6 +303,8 @@ router.post('/:id/comments', (req, res) => {
       db.prepare('INSERT INTO notifications (user_id, type, from_user_id, post_id, content) VALUES (?, ?, ?, ?, ?)').run(
         parentComment.user_id, 'comments', userId, postId, replyer ? `${replyer.nickname} 回复了你的评论` : '有人回复了你的评论'
       );
+      // Push notification
+      sendPushToUser(parentComment.user_id, 'comments', '新回复', replyer ? `${replyer.nickname} 回复了你的评论` : '有人回复了你的评论');
     }
   }
 
@@ -308,6 +334,8 @@ router.post('/:postId/comments/:commentId/like', (req, res) => {
       db.prepare('INSERT INTO notifications (user_id, type, from_user_id, post_id, content) VALUES (?, ?, ?, ?, ?)').run(
         comment.user_id, 'comment_like', userId, comment.post_id, liker ? `${liker.nickname} 赞了你的评论` : '有人赞了你的评论'
       );
+      // Push notification
+      sendPushToUser(comment.user_id, 'comment_like', '新点赞', liker ? `${liker.nickname} 赞了你的评论` : '有人赞了你的评论');
     }
   }
 

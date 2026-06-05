@@ -1,9 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+const path = require('path');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+
+// Static files for mock upload mode
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'upload')));
 
 // Routes
 app.use('/api/posts', require('./routes/posts'));
@@ -12,6 +17,7 @@ app.use('/api/discover', require('./routes/discover'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/upload', require('./routes/upload'));
 
 // Catch-all for unmatched routes
 app.use((req, res, next) => {

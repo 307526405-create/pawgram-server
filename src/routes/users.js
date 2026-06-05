@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../database/init');
 const router = express.Router();
+const { sendPushToUser } = require('../services/push');
 
 // GET /api/users/blocked/list — get blocked users list (must be before /:id)
 router.get('/blocked/list', (req, res) => {
@@ -88,6 +89,8 @@ router.post('/:id/follow', (req, res) => {
   db.prepare('INSERT INTO notifications (user_id, type, from_user_id, content) VALUES (?, ?, ?, ?)').run(
     targetUserId, 'follows', userId, follower ? `${follower.nickname} 关注了你` : '有人关注了你'
   );
+  // Push notification
+  sendPushToUser(targetUserId, 'follows', '新关注', follower ? `${follower.nickname} 关注了你` : '有人关注了你');
 
   res.json({ code: 0, data: { followed: true } });
 });

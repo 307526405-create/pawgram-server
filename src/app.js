@@ -9,6 +9,8 @@ app.use(express.json());
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/places', require('./routes/places'));
 app.use('/api/discover', require('./routes/discover'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/users', require('./routes/users'));
 
 const PORT = 3000;
 app.listen(PORT, () => console.log(`PawGram API: http://localhost:${PORT}`));
